@@ -74,5 +74,10 @@ namespace NewsAggregator
         {
             return articles.Find(new BsonDocument()).ToList().Cast<Article>().ToList();
         }
+
+        public List<Article> getArticlesBySource(string source)
+        {
+            return getAllArticles().Where(x => x.Source == source).ToList();
+        }
     }
 }
