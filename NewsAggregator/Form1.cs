@@ -17,8 +17,8 @@ namespace NewsAggregator
         {
             InitializeComponent();
             DB db = new DB();
-            List<Article> list = db.getAllArticlesByCategory("Biznes");
-            list.ForEach(x => Debug.WriteLine(x.Content + "ddd"));
+            List<Article> list = db.getAllArticlesByCategory("Najważniejsze");
+            var categories = db.getAllArticlesSinceDate(new DateTime(2019, 02, 22));
         }
     }
 }

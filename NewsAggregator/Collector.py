@@ -5,6 +5,9 @@ import xml.etree.ElementTree as ET
 import lzma
 from datetime import datetime, timedelta
 
+# Flag to turn on/off compressing
+isCompressing = False
+
 # MongoDB connection and selecting collections
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["aggregator"]
@@ -52,18 +55,25 @@ for x in sources.find():
         dtPubDate = datetime.strptime(strPubDate, "%a, %d %b %y %H:%M:%S %z")
 
         category = x["category"]
+        # if category == "Biznes":
+        #     print(dtPubDate)
+        #     print(categoriesTimes[category])
+        #     print("\n")
         source = x["name"]
         # if article is new than download it and insert to MongoDB
         # print(str(dtPubDate) + "vs" + str(categoriesTimes[category]))
+
         if dtPubDate > categoriesTimes[category]:
             content = str(urllib.request.urlopen(url).read())
-            compressed = str(lzma.compress(str.encode(content)))
+            if isCompressing:
+                compressed = str(lzma.compress(str.encode(content)))
+
             if latestPubDate is None:
                 latestPubDate = dtPubDate
             elif dtPubDate > latestPubDate:
                 latestPubDate = dtPubDate
             try:
-                articles.insert_one({"title": title, "content": content, "category": category, "source": source, "pubDate": strPubDate})
+                articles.insert_one({"title": title, "content": compressed if isCompressing else content, "category": category, "source": source, "pubDate": strPubDate})
                 print("Dodane: " + title)
             except Exception:
                 print("Duplikat!!! " + title)
