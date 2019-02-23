@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using Newtonsoft.Json;
+using System.Globalization;
 
 namespace NewsAggregator
 {
@@ -109,7 +110,9 @@ namespace NewsAggregator
 
         public List<Article> sortArticles(List<Article> articles, SortMethod sortMethod)
         {
-            throw new NotImplementedException();
+            if (sortMethod == SortMethod.DateAscending) return articles.OrderBy(x => DateTime.ParseExact(x.PubDate, "ddd, dd MMM yy HH:mm:ss", CultureInfo.InvariantCulture)).ToList();
+            return articles.OrderByDescending(x => DateTime.ParseExact(x.PubDate, "ddd, dd MMM yy HH:mm:ss", CultureInfo.InvariantCulture)).ToList();
+            //return articles.Sort((x, y) => DateTime.ParseExact(x.PubDate, "ddd, dd MMM yy HH:mm:ss", CultureInfo.InvariantCulture).CompareTo(DateTime.ParseExact(y.PubDate, "ddd, dd MMM yy HH:mm:ss", CultureInfo.InvariantCulture));
         }
     }
 }
