@@ -63,7 +63,7 @@ namespace NewsAggregator
             {
                 //Fri, 22 Feb 19 14:12:00 +0100
                 string s_articleDate = article.PubDate; // ddd, dd MMM yy HH:MM:ss GMT
-                s_articleDate = s_articleDate.Remove(s_articleDate.Length - 5, 5).Trim();
+                if (s_articleDate.EndsWith("+0100")) s_articleDate = s_articleDate.Remove(s_articleDate.Length - 5, 5).Trim();
                 DateTime dt_articleDate = DateTime.ParseExact(s_articleDate, "ddd, dd MMM yy HH:mm:ss", CultureInfo.InvariantCulture);
                 if (dt_articleDate >= dt) output.Add(article);
             }
@@ -78,6 +78,44 @@ namespace NewsAggregator
         public List<Article> getArticlesBySource(string source)
         {
             return getAllArticles().Where(x => x.Source == source).ToList();
+        }
+
+        public void addNewCategory(string category)
+        {
+            try
+            {
+                var bson_sources = db.GetCollection<BsonDocument>("sources");
+                BsonDocument metadata = bson_sources.Find(new BsonDocument("metadata", "1")).ToBsonDocument();
+                metadata.Add(new BsonElement(category, DateTime.Now.ToString("ddd, dd MMM yy HH:mm:ss")));
+                bson_sources.ReplaceOne(new BsonDocument("_id", metadata["_id"]), metadata);
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        public void removeCategory(string category, bool removeArticles=true)
+        {
+            var bson_sources = db.GetCollection<BsonDocument>("sources");
+            BsonDocument metadata = bson_sources.Find(new BsonDocument("metadata", "1")).ToBsonDocument();
+            metadata.Remove(category);
+            bson_sources.ReplaceOne(new BsonDocument("_id", metadata["_id"]), metadata);
+
+            if (removeArticles)
+            {
+                articles.DeleteMany(new BsonDocument("category", category));
+            }
+        }
+
+        public void addNewSource(Source source)
+        {
+            sources.InsertOne(source);
+        }
+
+        public void removeSource(Source source)
+        {
+            sources.DeleteOne(source.ToBsonDocument());
         }
     }
 }
