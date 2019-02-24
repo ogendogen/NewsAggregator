@@ -40,34 +40,16 @@ namespace NewsAggregator
 
         public List<Article> getAllArticlesSinceDate(DateTime dt)
         {
-            //Int32 unixTimestamp = (Int32)(dt.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-            //return articles.Find(new BsonDocument()).ToList().Where(x => x.PubDate > unixTimestamp).Cast<Article>().ToList();
-            var articles = getAllArticles();
-            List<Article> output = new List<Article>();
-            foreach (var article in articles)
-            {
-                //Fri, 22 Feb 19 14:12:00 +0100
-                string s_articleDate = article.PubDate; // ddd, dd MMM yy HH:MM:ss GMT
-                s_articleDate = s_articleDate.Remove(s_articleDate.Length - 5, 5).Trim();
-                DateTime dt_articleDate = DateTime.ParseExact(s_articleDate, "ddd, dd MMM yy HH:mm:ss", CultureInfo.InvariantCulture);
-                if (dt_articleDate >= dt) output.Add(article);
-            }
-            return output;
+            var filterBuilder = Builders<Article>.Filter;
+            var filter = filterBuilder.Gte(x => x.PubDate, dt);
+            return articles.Find(filter).ToList();
         }
 
         public List<Article> getAllArticlesSinceDateByCategory(DateTime dt, string category)
         {
-            var articles = getAllArticlesByCategory(category);
-            List<Article> output = new List<Article>();
-            foreach (var article in articles)
-            {
-                //Fri, 22 Feb 19 14:12:00 +0100
-                string s_articleDate = article.PubDate; // ddd, dd MMM yy HH:MM:ss GMT
-                if (s_articleDate.EndsWith("+0100")) s_articleDate = s_articleDate.Remove(s_articleDate.Length - 5, 5).Trim();
-                DateTime dt_articleDate = DateTime.ParseExact(s_articleDate, "ddd, dd MMM yy HH:mm:ss", CultureInfo.InvariantCulture);
-                if (dt_articleDate >= dt) output.Add(article);
-            }
-            return output;
+            var filterBuilder = Builders<Article>.Filter;
+            var filter = filterBuilder.Gte(x => x.PubDate, dt) & filterBuilder.Eq(x => x.Category, category);
+            return articles.Find(filter).ToList();
         }
 
         public List<Article> getAllArticles()
@@ -77,7 +59,10 @@ namespace NewsAggregator
 
         public List<Article> getArticlesBySource(string source)
         {
-            return getAllArticles().Where(x => x.Source == source).ToList();
+            var filterBuilder = Builders<Article>.Filter;
+            var filter = filterBuilder.Eq(x => x.Source, source);
+            return articles.Find(filter).ToList();
+            //return getAllArticles().Where(x => x.Source == source).ToList();
         }
 
         public void addNewCategory(string category)

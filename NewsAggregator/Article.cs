@@ -24,29 +24,9 @@ namespace NewsAggregator
         public string Category { get; set; }
         [BsonElement("content")]
         public string Content { get; set; }
-        //try
-        //{
-        //    string input = value;
-        //    byte[] inputBytes = Encoding.UTF8.GetBytes(input);
-        //    var xzStream = new XZInputStream(inputBytes);
-        //    byte[] buffer = new byte[2048];
-        //    StringBuilder output = new StringBuilder();
-        //    while (true)
-        //    {
-        //        int count = xzStream.Read(buffer, 0, buffer.Length);
-        //        output.Append(buffer);
-        //        if (count == 0) break;
-        //    }
-        //    Content = output.ToString();
-        //}
-        //catch(Exception e)
-        //{
-        //    Debug.WriteLine(e.StackTrace);
-        //}
         [BsonElement("pubDate")]
-        public string PubDate { get; set; }
+        public DateTime PubDate { get; set; }
 
-        private DateTime dtPubDate;
         public override string ToString()
         {
             return "ID: " + ID.ToString() + "\nTitle: " + Title + "\nSource:" + Source + "\nCategory: " + Category + "\nContent: " + Content + "\nPubDate: " + PubDate.ToString();

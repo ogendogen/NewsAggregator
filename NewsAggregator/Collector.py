@@ -53,6 +53,8 @@ for x in sources.find():
             continue
 
         dtPubDate = datetime.strptime(strPubDate, "%a, %d %b %y %H:%M:%S %z")
+        #strPubDate = datetime.strftime(dtPubDate, "%y-%m-%d %H:%M:%S.000")
+        #dtPubDate2 = datetime.strptime(strPubDate, "%Y-%m-%dT%H:%M:%S.000Z")
 
         category = x["category"]
         # if category == "Biznes":
@@ -73,7 +75,7 @@ for x in sources.find():
             elif dtPubDate > latestPubDate:
                 latestPubDate = dtPubDate
             try:
-                articles.insert_one({"title": title, "content": compressed if isCompressing else content, "category": category, "source": source, "pubDate": strPubDate})
+                articles.insert_one({"title": title, "content": compressed if isCompressing else content, "category": category, "source": source, "pubDate": dtPubDate})
                 print("Dodane: " + title)
             except Exception:
                 print("Duplikat!!! " + title)

@@ -108,11 +108,33 @@ namespace NewsAggregator
             return output;
         }
 
-        public List<Article> sortArticles(List<Article> articles, SortMethod sortMethod)
+        public Dictionary<string, DateTime> getAllCategoriesLatestTime()
         {
-            if (sortMethod == SortMethod.DateAscending) return articles.OrderBy(x => DateTime.ParseExact(x.PubDate, "ddd, dd MMM yy HH:mm:ss", CultureInfo.InvariantCulture)).ToList();
-            return articles.OrderByDescending(x => DateTime.ParseExact(x.PubDate, "ddd, dd MMM yy HH:mm:ss", CultureInfo.InvariantCulture)).ToList();
-            //return articles.Sort((x, y) => DateTime.ParseExact(x.PubDate, "ddd, dd MMM yy HH:mm:ss", CultureInfo.InvariantCulture).CompareTo(DateTime.ParseExact(y.PubDate, "ddd, dd MMM yy HH:mm:ss", CultureInfo.InvariantCulture));
+            Dictionary<string, DateTime> output = new Dictionary<string, DateTime>();
+            string[] categories = getAllCategories();
+            DateTime maxDt;
+            foreach (var category in categories)
+            {
+                maxDt = new DateTime(2019, 1, 1);
+                string[] files = Directory.GetFiles(appPath + "/" + category);
+                foreach (var file in files)
+                {
+                    DateTime fileDt = File.GetCreationTime(appPath + "/" + category + "/" + file);
+                    if (fileDt > maxDt)
+                    {
+                        maxDt = fileDt;
+                    }
+                }
+                output.Add(category, maxDt);
+            }
+            return output;
         }
+
+        //public List<Article> sortArticles(List<Article> articles, SortMethod sortMethod)
+        //{
+        //    if (sortMethod == SortMethod.DateAscending) return articles.OrderBy(x => DateTime.ParseExact(x.PubDate, "ddd, dd MMM yy HH:mm:ss", CultureInfo.InvariantCulture)).ToList();
+        //    return articles.OrderByDescending(x => DateTime.ParseExact(x.PubDate, "ddd, dd MMM yy HH:mm:ss", CultureInfo.InvariantCulture)).ToList();
+        //    //return articles.Sort((x, y) => DateTime.ParseExact(x.PubDate, "ddd, dd MMM yy HH:mm:ss", CultureInfo.InvariantCulture).CompareTo(DateTime.ParseExact(y.PubDate, "ddd, dd MMM yy HH:mm:ss", CultureInfo.InvariantCulture));
+        //}
     }
 }

@@ -17,8 +17,10 @@ namespace NewsAggregator
         {
             InitializeComponent();
             DB db = new DB();
-            List<Article> list = db.getAllArticlesByCategory("Najważniejsze");
-            var categories = db.getAllArticlesSinceDate(new DateTime(2019, 02, 22));
+            
+            //List<Article> list = db.getAllArticlesSinceDateByCategory(new DateTime(2019, 2, 22), "Sport");
+            //List<Article> list = db.getAllArticlesByCategory("Najważniejsze");
+            //var categories = db.getAllArticlesSinceDate(new DateTime(2019, 02, 22));
         }
     }
 }
