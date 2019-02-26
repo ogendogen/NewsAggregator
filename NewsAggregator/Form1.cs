@@ -28,12 +28,12 @@ namespace NewsAggregator
                 List<string> articles = fileManager.getAllArticlesTitlesByCategory(category);
                 allArticles.Add(category, articles);
             }
-            webBrowser1.ScriptErrorsSuppressed = true;
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             Synchronizer.synchronize(db, fileManager);
+            synchronizeUI();
             MessageBox.Show("Synchronizacja zakończona!", "Powodzenie", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
@@ -47,18 +47,8 @@ namespace NewsAggregator
                 string category = comboBox1.SelectedItem.ToString();
                 string content = fileManager.getArticleContentByTitleAndCategory(title, category);
 
-                //File.WriteAllText(Path.GetTempPath() + "//" + title.Replace(' ', '_') + ".html", content);
                 string file_to_open = fileManager.moveFileToTemp(title, content);
                 Process.Start(file_to_open);
-
-                // prepare html string
-                //string prepared_content = content.Replace("\n", "").Substring(2).Replace("\xc5\x82", "ł");
-                //byte[] bytes_content = Encoding.Default.GetBytes(prepared_content);
-                //prepared_content = Encoding.UTF8.GetString(bytes_content);
-
-                //webBrowser1.DocumentText = content;
-                //Form2 form = new Form2(title, content);
-                //form.Show();
             }
             catch (Exception ex)
             {
@@ -74,6 +64,28 @@ namespace NewsAggregator
             {
                 listBox1.Items.Add(currentArticle);
             }
+        }
+
+        private void synchronizeUI()
+        {
+            var categories = db.getAllCategories().Where(x => x != null).ToList();
+            foreach (var category in categories)
+            {
+                List<string> articles = fileManager.getAllArticlesTitlesByCategory(category);
+                allArticles.Add(category, articles);
+            }
+
+            listBox1.Items.Clear();
+            List<string> currentArticles = allArticles[comboBox1.Text];
+            foreach (var currentArticle in currentArticles)
+            {
+                listBox1.Items.Add(currentArticle);
+            }
+        }
+
+        private void kanałyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
