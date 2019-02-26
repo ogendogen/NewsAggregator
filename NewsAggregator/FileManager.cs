@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 using System.IO;
 using Newtonsoft.Json;
 using System.Globalization;
+using System.Security.Cryptography;
 
 namespace NewsAggregator
 {
     public class FileManager
     {
-        private string appPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/NewsAggregator";
+        private string appPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\NewsAggregator";
 
         public enum SortMethod
         {
@@ -26,14 +27,14 @@ namespace NewsAggregator
                 Directory.CreateDirectory(appPath);
                 foreach (var category in categories)
                 {
-                    Directory.CreateDirectory(appPath + "/" + category);
+                    Directory.CreateDirectory(appPath + "\\" + category);
                 }
             }
         }
 
         private bool isCategoryExists(string category)
         {
-            return Directory.Exists(appPath + "/" + category);
+            return Directory.Exists(appPath + "\\" + category);
         }
 
         private bool isArticleExists(Article article)
@@ -54,7 +55,7 @@ namespace NewsAggregator
 
         public void createNewCategory(string category)
         {
-            if (!isCategoryExists(category)) Directory.CreateDirectory(appPath + "/" + category);
+            if (!isCategoryExists(category)) Directory.CreateDirectory(appPath + "\\" + category);
         }
 
         public void addNewArticle(Article article)
@@ -62,7 +63,7 @@ namespace NewsAggregator
             try
             {
                 string serialized = JsonConvert.SerializeObject(article);
-                File.WriteAllText(appPath + "/" + article.Category + "/" + article.ID + ".json", serialized);
+                File.WriteAllText(appPath + "\\" + article.Category + "\\" + article.ID + ".json", serialized);
             }
             catch (Exception e)
             {
@@ -77,7 +78,7 @@ namespace NewsAggregator
                 foreach (var article in articles)
                 {
                     string serialized = JsonConvert.SerializeObject(article);
-                    File.WriteAllText(appPath + "/" + article.Category + "/" + article.ID + ".json", serialized);
+                    File.WriteAllText(appPath + "\\" + article.Category + "\\" + article.ID + ".json", serialized);
                 }
             }
             catch (Exception e)
@@ -88,24 +89,60 @@ namespace NewsAggregator
 
         public string[] getAllCategories()
         {
-            return Directory.GetDirectories(appPath);
+            var output = new List<string>();
+            Directory.GetDirectories(appPath)
+                .ToList()
+                .ForEach(x => output.Add(x.Split(new string[] { "\\" }, StringSplitOptions.None).Last()));
+            return output.ToArray();
         }
 
-        public List<Article> getAllArticlesByCategory(string category)
+        public List<Article> getAllArticlesByCategory(string category) // too much memory consuming...
         {
             string[] categories = getAllCategories();
             List<Article> output = new List<Article>();
             foreach (var subcategory in categories)
             {
-                string[] files = Directory.GetFiles(appPath + "/" + category);
+                string[] files = Directory.GetFiles(appPath + "\\" + category);
                 foreach (var file in files)
                 {
-                    string file_content = File.ReadAllText(appPath + "/" + category + "/" + file);
+                    string file_name = file.Split(new string[] { "\\" }, StringSplitOptions.None).Last();
+                    string file_content = File.ReadAllText(appPath + "\\" + category + "\\" + file_name);
                     Article article = JsonConvert.DeserializeObject<Article>(file_content);
                     output.Add(article);
                 }
             }
             return output;
+        }
+
+        public List<string> getAllArticlesTitlesByCategory(string category)
+        {
+            string[] categories = getAllCategories();
+            List<string> output = new List<string>();
+            foreach (var subcategory in categories)
+            {
+                string[] files = Directory.GetFiles(appPath + "\\" + category);
+                foreach (var file in files)
+                {
+                    string file_name = file.Split(new string[] { "\\" }, StringSplitOptions.None).Last();
+                    string file_content = File.ReadAllText(appPath + "\\" + category + "\\" + file_name);
+                    Article article = JsonConvert.DeserializeObject<Article>(file_content);
+                    output.Add(article.Title);
+                }
+            }
+            return output;
+        }
+
+        public string getArticleContentByTitleAndCategory(string title, string category)
+        {
+            string[] files = Directory.GetFiles(appPath + "\\" + category);
+            foreach (var file in files)
+            {
+                string file_content = File.ReadAllText(file);
+                Article article = JsonConvert.DeserializeObject<Article>(file_content);
+                if (article.Title == title) return article.Content;
+                //if (file_content.Contains(title)) return file_content;
+            }
+            throw new Exception("Wybrany artykuł nie istnieje!");
         }
 
         public Dictionary<string, DateTime> getAllCategoriesLatestTime()
@@ -116,10 +153,11 @@ namespace NewsAggregator
             foreach (var category in categories)
             {
                 maxDt = new DateTime(2019, 1, 1);
-                string[] files = Directory.GetFiles(appPath + "/" + category);
+                string[] files = Directory.GetFiles(appPath + "\\" + category);
                 foreach (var file in files)
                 {
-                    DateTime fileDt = File.GetCreationTime(appPath + "/" + category + "/" + file);
+                    string file_name = file.Split(new string[] { "\\" }, StringSplitOptions.None).Last();
+                    DateTime fileDt = File.GetCreationTime(appPath + "\\" + category + "\\" + file_name);
                     if (fileDt > maxDt)
                     {
                         maxDt = fileDt;
@@ -128,6 +166,23 @@ namespace NewsAggregator
                 output.Add(category, maxDt);
             }
             return output;
+        }
+
+        public string moveFileToTemp(string title, string content) // returns file path
+        {
+            MD5 md5 = MD5.Create();
+            byte[] b_title = Encoding.UTF8.GetBytes(title);
+            byte[] hash = md5.ComputeHash(b_title);
+
+            StringBuilder builder = new StringBuilder();
+            foreach (var b_byte in hash)
+            {
+                builder.Append(b_byte.ToString("X2"));
+            }
+
+            string final_file = Path.GetTempPath() + "\\" + builder.ToString() + ".html";
+            File.WriteAllText(final_file, content);
+            return final_file;
         }
 
         //public List<Article> sortArticles(List<Article> articles, SortMethod sortMethod)

@@ -66,7 +66,15 @@ for x in sources.find():
         # print(str(dtPubDate) + "vs" + str(categoriesTimes[category]))
 
         if dtPubDate > categoriesTimes[category]:
-            content = str(urllib.request.urlopen(url).read())
+
+            content = None
+
+            try:
+                content = str(urllib.request.urlopen(url).read().decode("utf-8"))
+            except Exception:
+                content = str(urllib.request.urlopen(url).read())
+            #content = str(content.encode("utf-8"))
+
             if isCompressing:
                 compressed = str(lzma.compress(str.encode(content)))
 

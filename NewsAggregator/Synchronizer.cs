@@ -10,18 +10,11 @@ namespace NewsAggregator
     {
         public static void synchronize(DB db, FileManager fileManager)
         {
-            try
+            Dictionary<string, DateTime> filesLatestTimes = fileManager.getAllCategoriesLatestTime();
+            foreach (var file in filesLatestTimes)
             {
-                Dictionary<string, DateTime> filesLatestTimes = fileManager.getAllCategoriesLatestTime();
-                foreach (var file in filesLatestTimes)
-                {
-                    List<Article> articles = db.getAllArticlesSinceDateByCategory(file.Value, file.Key);
-                    fileManager.addNewArticles(articles);
-                }
-            }
-            catch (Exception e)
-            {
-                throw e;
+                List<Article> articles = db.getAllArticlesSinceDateByCategory(file.Value, file.Key);
+                fileManager.addNewArticles(articles);
             }
         }
     }

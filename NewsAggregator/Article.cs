@@ -15,7 +15,8 @@ namespace NewsAggregator
     public class Article
     {
         [BsonId]
-        public ObjectId ID { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string ID { get; set; }
         [BsonElement("title")]
         public string Title { get; set; }
         [BsonElement("source")]
@@ -29,7 +30,8 @@ namespace NewsAggregator
 
         public override string ToString()
         {
-            return "ID: " + ID.ToString() + "\nTitle: " + Title + "\nSource:" + Source + "\nCategory: " + Category + "\nContent: " + Content + "\nPubDate: " + PubDate.ToString();
+            return Title;
+            //return "ID: " + ID.ToString() + "\nTitle: " + Title + "\nSource:" + Source + "\nCategory: " + Category + "\nContent: " + Content + "\nPubDate: " + PubDate.ToString();
         }
     }
 }
