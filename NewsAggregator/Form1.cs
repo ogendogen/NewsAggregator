@@ -69,23 +69,36 @@ namespace NewsAggregator
         private void synchronizeUI()
         {
             var categories = db.getAllCategories().Where(x => x != null).ToList();
+            allArticles.Clear();
             foreach (var category in categories)
             {
                 List<string> articles = fileManager.getAllArticlesTitlesByCategory(category);
                 allArticles.Add(category, articles);
             }
 
-            listBox1.Items.Clear();
-            List<string> currentArticles = allArticles[comboBox1.Text];
-            foreach (var currentArticle in currentArticles)
+            try
             {
-                listBox1.Items.Add(currentArticle);
+                listBox1.Items.Clear();
+                List<string> currentArticles = allArticles[comboBox1.Text];
+                foreach (var currentArticle in currentArticles)
+                {
+                    listBox1.Items.Add(currentArticle);
+                }
+            }
+            catch(KeyNotFoundException)
+            {
+                return;
+            }
+            catch(Exception e)
+            {
+                throw e;
             }
         }
 
         private void kanałyToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            Form2 form = new Form2(db);
+            form.Show();
         }
     }
 }

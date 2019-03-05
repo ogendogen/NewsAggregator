@@ -9,7 +9,8 @@ from datetime import datetime, timedelta
 isCompressing = False
 
 # MongoDB connection and selecting collections
-client = pymongo.MongoClient("mongodb://localhost:27017/")
+# client = pymongo.MongoClient("mongodb://localhost:27017/")
+client = pymongo.MongoClient("mongodb+srv://aggregator:aggregator@cluster0-9mhht.mongodb.net/test?retryWrites=true")
 db = client["aggregator"]
 articles = db["articles"]
 sources = db["sources"]
@@ -52,18 +53,23 @@ for x in sources.find():
         if url is None or title is None or pubDate is None:
             continue
 
-        dtPubDate = datetime.strptime(strPubDate, "%a, %d %b %y %H:%M:%S %z")
+        dtPubDate = None
+        try:
+            dtPubDate = datetime.strptime(strPubDate, "%a, %d %b %y %H:%M:%S %z")
+        except Exception:
+            dtPubDate = datetime.strptime(strPubDate, "%a, %d %b %Y %H:%M:%S %z")
         #strPubDate = datetime.strftime(dtPubDate, "%y-%m-%d %H:%M:%S.000")
         #dtPubDate2 = datetime.strptime(strPubDate, "%Y-%m-%dT%H:%M:%S.000Z")
 
         category = x["category"]
         # if category == "Biznes":
-        #     print(dtPubDate)
-        #     print(categoriesTimes[category])
+        #     print("dtPubDate:" + str(dtPubDate))
+        #     print("categoriesTimes[category]:" + str(categoriesTimes[category]))
+        #     print(str(dtPubDate > categoriesTimes[category]))
         #     print("\n")
         source = x["name"]
         # if article is new than download it and insert to MongoDB
-        # print(str(dtPubDate) + "vs" + str(categoriesTimes[category]))
+        # print(str(dtPubDate) + "vs" + str(categoriesTimes[category]))Tue, 05 Mar 19 22:24:30 +0100
 
         if dtPubDate > categoriesTimes[category]:
 

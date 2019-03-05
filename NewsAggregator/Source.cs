@@ -21,5 +21,10 @@ namespace NewsAggregator
         public string Category { get; set; }
         [BsonElement("lastBuildDate")]
         public string LastBuildDate { get; set; }
+
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }

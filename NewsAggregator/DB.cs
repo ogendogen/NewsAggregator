@@ -17,9 +17,10 @@ namespace NewsAggregator
         private IMongoCollection<Article> articles;
         private IMongoCollection<Source> sources;
 
-        public DB(string connectionString="mongodb://localhost", string dbName="aggregator")
+        public DB(string connectionString= "mongodb+srv://aggregator:aggregator@cluster0-9mhht.mongodb.net/test?retryWrites=true", string dbName="aggregator")
         {
-            client = new MongoClient(connectionString);
+            var mongoUrl = new MongoUrl(connectionString);
+            client = new MongoClient(mongoUrl);
             db = client.GetDatabase(dbName);
             articles = db.GetCollection<Article>("articles");
             sources = db.GetCollection<Source>("sources");
@@ -65,13 +66,59 @@ namespace NewsAggregator
             //return getAllArticles().Where(x => x.Source == source).ToList();
         }
 
-        public void addNewCategory(string category)
+        public List<Source> getAllSources()
+        {
+            try
+            {
+                var bson_sources = db.GetCollection<Source>("sources");
+                var sources_list = bson_sources.Find(new BsonDocument()).ToList();
+                List<Source> output = new List<Source>();
+                sources_list.ForEach(x => output.Add(x));
+                return output;
+            }
+            catch(Exception e)
+            {
+                throw e;
+            }
+        }
+
+        public void addNewSource(Source source)
+        {
+            try
+            {
+                sources.InsertOne(source);
+                addNewCategory(source.Category);
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        public void removeSource(Source source)
+        {
+            try
+            {
+                sources.DeleteOne(source.ToBsonDocument());
+                removeCategory(source.Category);
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        private void addNewCategory(string category)
         {
             try
             {
                 var bson_sources = db.GetCollection<BsonDocument>("sources");
                 BsonDocument metadata = bson_sources.Find(new BsonDocument("metadata", "1")).ToBsonDocument();
-                metadata.Add(new BsonElement(category, DateTime.Now.ToString("ddd, dd MMM yy HH:mm:ss")));
+
+                BsonElement buffer;
+                if (metadata.TryGetElement(category, out buffer)) return; // taka kategoria już istnieje
+
+                metadata.Add(new BsonElement(category, DateTime.Now.ToString("ddd, dd MMM yy HH:mm:ss", new CultureInfo("en-US"))));
                 bson_sources.ReplaceOne(new BsonDocument("_id", metadata["_id"]), metadata);
             }
             catch (Exception e)
@@ -80,7 +127,7 @@ namespace NewsAggregator
             }
         }
 
-        public void removeCategory(string category, bool removeArticles=true)
+        private void removeCategory(string category, bool removeArticles = false)
         {
             var bson_sources = db.GetCollection<BsonDocument>("sources");
             BsonDocument metadata = bson_sources.Find(new BsonDocument("metadata", "1")).ToBsonDocument();
@@ -91,16 +138,6 @@ namespace NewsAggregator
             {
                 articles.DeleteMany(new BsonDocument("category", category));
             }
-        }
-
-        public void addNewSource(Source source)
-        {
-            sources.InsertOne(source);
-        }
-
-        public void removeSource(Source source)
-        {
-            sources.DeleteOne(source.ToBsonDocument());
         }
     }
 }

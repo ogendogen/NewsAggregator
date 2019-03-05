@@ -120,7 +120,16 @@ namespace NewsAggregator
             List<string> output = new List<string>();
             foreach (var subcategory in categories)
             {
-                string[] files = Directory.GetFiles(appPath + "\\" + category);
+                string[] files;
+                try
+                {
+                    files = Directory.GetFiles(appPath + "\\" + category);
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    Directory.CreateDirectory(appPath + "\\" + category);
+                    continue;
+                }
                 foreach (var file in files)
                 {
                     string file_name = file.Split(new string[] { "\\" }, StringSplitOptions.None).Last();
