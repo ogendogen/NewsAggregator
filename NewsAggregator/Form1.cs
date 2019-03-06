@@ -93,6 +93,28 @@ namespace NewsAggregator
             {
                 throw e;
             }
+
+            try
+            {
+                allArticles.Clear();
+                foreach (var category in categories)
+                {
+                    List<string> articles = fileManager.getAllArticlesTitlesByCategory(category);
+                    allArticles.Add(category, articles);
+                }
+
+                listBox1.Items.Clear();
+                comboBox1.ResetText();
+                comboBox1.SelectedIndex = -1;
+            }
+            catch (KeyNotFoundException)
+            {
+                return;
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
         }
 
         private void kanałyToolStripMenuItem_Click(object sender, EventArgs e)
